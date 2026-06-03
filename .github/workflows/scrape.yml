@@ -2,9 +2,8 @@ name: BSE OTC Daily Scraper
 
 on:
   schedule:
-    # 5:30 PM IST = 12:00 UTC (IST is UTC+5:30)
-    - cron: '0 12 * * 1-5'   # Mon–Fri only
-  workflow_dispatch:           # also allows manual trigger from GitHub UI
+    - cron: '0 12 * * 1-5'   # 5:30 PM IST = 12:00 UTC, Mon–Fri
+  workflow_dispatch:           # manual trigger
 
 jobs:
   scrape:
@@ -20,7 +19,21 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          pip install requests selenium beautifulsoup4
+
+      - name: Install Chrome
+        run: |
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update -q
+          sudo apt-get install -y google-chrome-stable
+          google-chrome --version
+
+      - name: Install ChromeDriver
+        run: |
+          pip install webdriver-manager
+          python -c "from webdriver_manager.chrome import ChromeDriverManager; ChromeDriverManager().install()"
 
       - name: Run BSE scraper
         env:
